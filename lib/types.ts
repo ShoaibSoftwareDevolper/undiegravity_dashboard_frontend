@@ -1,4 +1,5 @@
 export type Framework = "react" | "nextjs";
+export type PreviewMode = "image" | "live";
 
 /**
  * Mirrors the backend's admin ComponentOut schema exactly, including its
@@ -15,6 +16,7 @@ export interface ComponentRecord {
   tags: string[];
   framework: Framework;
   thumbnail_public_id: string | null;
+  preview_mode: PreviewMode;
   enabled: boolean;
   sort_order: number;
   dependencies: string[] | null;
@@ -31,6 +33,7 @@ export interface ComponentInput {
   tags: string[];
   framework: Framework;
   thumbnail_public_id: string | null;
+  preview_mode: PreviewMode;
   enabled: boolean;
   sort_order: number;
   dependencies: string[];

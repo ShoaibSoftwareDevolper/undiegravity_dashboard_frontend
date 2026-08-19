@@ -2,13 +2,14 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import type { ComponentInput, ComponentRecord } from "@/lib/types";
+import type { ComponentInput, ComponentRecord, PreviewMode } from "@/lib/types";
 import { createComponent, updateComponent } from "@/lib/api";
 import { Button } from "@/ui/Button";
 import { Field } from "@/ui/Field";
 import { Input } from "@/ui/Input";
 import { Textarea } from "@/ui/Textarea";
 import { Checkbox } from "@/ui/Checkbox";
+import { Select } from "@/ui/Select";
 import { ThumbnailUploader } from "@/features/uploads/ThumbnailUploader";
 
 interface ComponentFormProps {
@@ -30,6 +31,9 @@ export function ComponentForm({ mode, initialData }: ComponentFormProps) {
   const [sortOrder, setSortOrder] = useState(initialData?.sort_order ?? 0);
   const [thumbnailPublicId, setThumbnailPublicId] = useState<string | null>(
     initialData?.thumbnail_public_id ?? null
+  );
+  const [previewMode, setPreviewMode] = useState<PreviewMode>(
+    initialData?.preview_mode ?? "image"
   );
 
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +65,7 @@ export function ComponentForm({ mode, initialData }: ComponentFormProps) {
       enabled,
       sort_order: sortOrder,
       thumbnail_public_id: thumbnailPublicId,
+      preview_mode: previewMode,
     };
 
     setIsSubmitting(true);
@@ -117,6 +122,21 @@ export function ComponentForm({ mode, initialData }: ComponentFormProps) {
         <span className="text-sm font-medium text-text">Thumbnail / Video Preview</span>
         <ThumbnailUploader value={thumbnailPublicId} onChange={setThumbnailPublicId} />
       </div>
+
+      <Field
+        label="Gallery card display"
+        htmlFor="previewMode"
+        hint="Live render only works once this component's slug is deployed in the main site's registry; it falls back to the image otherwise."
+      >
+        <Select
+          id="previewMode"
+          value={previewMode}
+          onChange={(event) => setPreviewMode(event.target.value as PreviewMode)}
+        >
+          <option value="image">Image / video thumbnail</option>
+          <option value="live">Live render (like Uiverse / Hover.dev)</option>
+        </Select>
+      </Field>
 
       <div className="grid gap-4 sm:grid-cols-3 sm:items-center">
         <Field label="Sort order" htmlFor="sortOrder">

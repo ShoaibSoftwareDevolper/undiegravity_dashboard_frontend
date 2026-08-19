@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getComponentById } from "@/lib/backend";
 import { ComponentForm } from "@/features/components/ComponentForm";
 
 export const metadata: Metadata = {
-  title: "Edit component",
+  title: "Edit Component | UndieGravity Admin",
 };
 
 export default async function EditComponentPage(props: PageProps<"/components/[id]/edit">) {
@@ -16,12 +17,29 @@ export default async function EditComponentPage(props: PageProps<"/components/[i
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-xl font-semibold text-text">Edit component</h1>
-        <p className="text-sm text-text-muted">{component.name}</p>
+    <div className="flex flex-col gap-6 max-w-4xl mx-auto">
+      {/* Header */}
+      <div className="flex flex-col gap-1 border-b border-border pb-4">
+        <div className="flex items-center gap-2 text-xs text-text-muted">
+          <Link href="/" className="hover:text-text transition-colors">
+            Dashboard
+          </Link>
+          <span>/</span>
+          <span className="font-medium text-text">Edit Component</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold tracking-tight text-text">Edit: {component.name}</h1>
+          <span className="font-mono text-xs text-text-muted bg-surface-muted px-2 py-0.5 rounded border border-border">
+            {component.slug}
+          </span>
+        </div>
+        <p className="text-xs sm:text-sm text-text-muted">
+          Modify metadata, category, sort order, and thumbnail media for this component.
+        </p>
       </div>
-      <div className="rounded-lg border border-border bg-surface p-6">
+
+      {/* Form Container */}
+      <div className="rounded-xl border border-border bg-surface p-6 sm:p-8 shadow-2xs">
         <ComponentForm mode="edit" initialData={component} />
       </div>
     </div>

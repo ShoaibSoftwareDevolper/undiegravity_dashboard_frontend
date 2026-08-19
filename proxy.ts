@@ -2,12 +2,24 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const ADMIN_COOKIE_NAME = process.env.ADMIN_COOKIE_NAME || "undiegravity_admin_key";
 
-const PUBLIC_PATHS = new Set(["/login", "/api/auth/login"]);
+const PUBLIC_PATHS = new Set([
+  "/login",
+  "/api/auth/login",
+  "/favicon.ico",
+  "/icon.png",
+  "/apple-icon.png",
+  "/logo.png",
+]);
 
 export function proxy(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
 
-  if (PUBLIC_PATHS.has(pathname)) {
+  // Allow public routes and static assets
+  if (
+    PUBLIC_PATHS.has(pathname) ||
+    pathname.startsWith("/_next") ||
+    pathname.match(/\.(png|jpg|jpeg|svg|webp|ico|css|js)$/)
+  ) {
     return NextResponse.next();
   }
 
@@ -26,5 +38,7 @@ export function proxy(request: NextRequest): NextResponse {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.png|apple-icon.png).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|icon.png|apple-icon.png|logo.png|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico)).*)",
+  ],
 };

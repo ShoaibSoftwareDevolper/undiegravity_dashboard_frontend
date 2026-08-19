@@ -1,13 +1,31 @@
 import type { Metadata } from "next";
+import { Inter, Syne } from "next/font/google";
 import { cookies } from "next/headers";
-import Link from "next/link";
 import { ADMIN_COOKIE_NAME } from "@/lib/backend";
-import { LogoutButton } from "@/features/auth/LogoutButton";
+import { DashboardShell } from "@/features/layout/DashboardShell";
 import "./globals.css";
 
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const logoFont = Syne({
+  variable: "--font-logo",
+  subsets: ["latin"],
+  weight: ["500", "600"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "UndieGravity admin",
-  description: "Manage UndieGravity component metadata.",
+  title: "UndieGravity Admin Dashboard",
+  description: "Management portal for UndieGravity UI component library.",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/apple-icon.png",
+  },
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
@@ -15,17 +33,20 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const isAuthenticated = cookieStore.has(ADMIN_COOKIE_NAME);
 
   return (
-    <html lang="en" className="h-full antialiased" style={{ colorScheme: "light" }} suppressHydrationWarning>
-      <body className="flex min-h-full flex-col bg-surface-muted text-text" suppressHydrationWarning>
-        <header className="border-b border-border bg-surface">
-          <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-6">
-            <Link href="/" className="text-sm font-semibold text-text">
-              UndieGravity admin
-            </Link>
-            {isAuthenticated ? <LogoutButton /> : null}
-          </div>
-        </header>
-        <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-8">{children}</main>
+    <html
+      lang="en"
+      className={`${inter.variable} ${logoFont.variable} h-full antialiased`}
+      style={{ colorScheme: "light" }}
+      suppressHydrationWarning
+    >
+      <head>
+        <link rel="icon" href="/icon.png" sizes="any" />
+        <link rel="apple-touch-icon" href="/apple-icon.png" />
+      </head>
+      <body className="min-h-full bg-surface-muted text-text font-sans" suppressHydrationWarning>
+        <DashboardShell isAuthenticated={isAuthenticated}>
+          {children}
+        </DashboardShell>
       </body>
     </html>
   );
