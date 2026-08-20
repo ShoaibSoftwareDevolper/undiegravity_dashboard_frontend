@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { PackageSearch, Search, Star } from "lucide-react";
 import type { ComponentRecord } from "@/lib/types";
 import {
   getCloudinaryImageUrl,
@@ -82,14 +83,7 @@ export function ComponentsTable({ components }: ComponentsTableProps) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-border bg-surface p-3.5 shadow-2xs">
         {/* Search Field */}
         <div className="relative flex-1 max-w-sm">
-          <svg
-            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
           <input
             type="text"
             placeholder="Search components by name, slug..."
@@ -202,7 +196,8 @@ export function ComponentsTable({ components }: ComponentsTableProps) {
                     <td className="px-4 py-3 text-center">
                       {component.tags?.includes("featured") ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-accent/15 px-2 py-0.5 text-[0.6875rem] font-semibold text-accent">
-                          ★ Featured
+                          <Star className="h-3 w-3 fill-current" />
+                          Featured
                         </span>
                       ) : (
                         <span className="text-xs text-text-muted">—</span>
@@ -228,9 +223,7 @@ export function ComponentsTable({ components }: ComponentsTableProps) {
                   <td colSpan={6} className="p-12 text-center">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-muted text-text-muted">
-                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
+                        <PackageSearch className="h-5 w-5" />
                       </div>
                       <p className="text-sm font-semibold text-text">No components found</p>
                       <p className="text-xs text-text-muted max-w-sm">

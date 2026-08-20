@@ -46,16 +46,17 @@ label[for] {
   cursor: pointer;
 }
 
-/* Sleek custom scrollbar, matches the UndieGravity accent */
+/* Thin, light scrollbar: visible enough to show scroll position, plain
+   enough not to draw attention next to the rest of this light-mode UI. */
 html {
   scroll-behavior: smooth;
-  scrollbar-width: thin;
-  scrollbar-color: #3f3cf2 transparent;
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #d4d4d3 transparent; /* Firefox: thumb, track */
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -63,16 +64,10 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #6366f1 0%, #3f3cf2 100%);
+  background: #d4d4d3;
   border-radius: 9999px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #4f46e5 0%, #2563eb 100%);
-  box-shadow: 0 0 10px rgba(63, 60, 242, 0.5);
-}
-
-::-webkit-scrollbar-thumb:active {
-  background: linear-gradient(180deg, #3730a3 0%, #1d4ed8 100%);
+  background: #b8b8b6;
 }

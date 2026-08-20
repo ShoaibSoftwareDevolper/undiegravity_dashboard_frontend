@@ -2,22 +2,23 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { loginWithAdminKey } from "@/lib/api";
+import { login } from "@/lib/api";
 import { Button } from "@/ui/Button";
 import { Field } from "@/ui/Field";
 import { Input } from "@/ui/Input";
 
 export function LoginForm() {
   const router = useRouter();
-  const [adminKey, setAdminKey] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!adminKey.trim()) {
-      setError("Enter the admin key.");
+    if (!username.trim() || !password) {
+      setError("Enter your username and password.");
       return;
     }
 
@@ -25,25 +26,35 @@ export function LoginForm() {
     setIsSubmitting(true);
 
     try {
-      await loginWithAdminKey(adminKey.trim());
+      await login(username.trim(), password);
       router.push("/");
       router.refresh();
     } catch {
-      setError("Invalid admin key.");
+      setError("Invalid username or password.");
       setIsSubmitting(false);
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-4">
-      <Field label="Admin key" htmlFor="adminKey" error={error ?? undefined}>
+      <Field label="Username" htmlFor="username">
         <Input
-          id="adminKey"
-          type="password"
-          autoComplete="off"
+          id="username"
+          type="text"
+          autoComplete="username"
           autoFocus
-          value={adminKey}
-          onChange={(event) => setAdminKey(event.target.value)}
+          value={username}
+          onChange={(event) => setUsername(event.target.value)}
+          disabled={isSubmitting}
+        />
+      </Field>
+      <Field label="Password" htmlFor="password" error={error ?? undefined}>
+        <Input
+          id="password"
+          type="password"
+          autoComplete="current-password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
           disabled={isSubmitting}
         />
       </Field>

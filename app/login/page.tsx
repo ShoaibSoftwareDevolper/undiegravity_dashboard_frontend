@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { Lock } from "lucide-react";
 import { LoginForm } from "@/features/auth/LoginForm";
 
 export const metadata: Metadata = {
@@ -25,7 +26,7 @@ export default function LoginPage() {
           </div>
           <div>
             <h1 className="text-xl font-bold tracking-tight text-text">UndieGravity Admin</h1>
-            <p className="text-xs text-text-muted mt-1">Enter your admin security key to access the dashboard.</p>
+            <p className="text-xs text-text-muted mt-1">Sign in with your username and password to access the dashboard.</p>
           </div>
         </div>
 
@@ -34,10 +35,8 @@ export default function LoginPage() {
 
         {/* Security Footer Note */}
         <div className="flex items-center justify-center gap-1.5 text-[0.6875rem] text-text-muted border-t border-border pt-4">
-          <svg className="h-3.5 w-3.5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
-          <span>End-to-end encrypted admin authentication</span>
+          <Lock className="h-3.5 w-3.5 text-text-muted" />
+          <span>Session protected admin authentication</span>
         </div>
       </div>
     </div>

@@ -1,11 +1,19 @@
 import Link from "next/link";
-import { BackendError, listComponents } from "@/lib/backend";
+import { redirect } from "next/navigation";
+import { AlertTriangle, Plus } from "lucide-react";
+import { BackendError, getCurrentUser, listComponents } from "@/lib/backend";
+import { hasPermission } from "@/lib/permissions";
 import { DashboardMetrics } from "@/features/dashboard/DashboardMetrics";
 import { ComponentsTable } from "@/features/components/ComponentsTable";
 
 export const revalidate = 0;
 
 export default async function DashboardPage() {
+  const user = await getCurrentUser();
+  if (user && !hasPermission(user, "components.view")) {
+    redirect("/settings");
+  }
+
   let components: Awaited<ReturnType<typeof listComponents>> = [];
   let loadError: string | null = null;
 
@@ -14,6 +22,8 @@ export default async function DashboardPage() {
   } catch (error) {
     loadError = error instanceof BackendError ? error.message : "Could not load components.";
   }
+
+  const canManageComponents = hasPermission(user, "components.manage");
 
   return (
     <div className="flex flex-col gap-6">
@@ -26,15 +36,15 @@ export default async function DashboardPage() {
           </p>
         </div>
 
-        <Link
-          href="/components/new"
-          className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-xs font-semibold text-white transition-all hover:bg-accent-hover active:scale-95 shadow-xs self-start sm:self-auto cursor-pointer"
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          <span>Add New Component</span>
-        </Link>
+        {canManageComponents ? (
+          <Link
+            href="/components/new"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-xs font-semibold text-white transition-all hover:bg-accent-hover active:scale-95 shadow-xs self-start sm:self-auto cursor-pointer"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Add New Component</span>
+          </Link>
+        ) : null}
       </div>
 
       {/* Metrics Overview Cards */}
@@ -43,9 +53,7 @@ export default async function DashboardPage() {
       {/* Error Alert */}
       {loadError ? (
         <div className="flex items-center gap-3 rounded-xl border border-danger/30 bg-danger-muted p-4 text-xs font-medium text-danger">
-          <svg className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+          <AlertTriangle className="h-5 w-5 shrink-0" />
           <span>{loadError}</span>
         </div>
       ) : null}

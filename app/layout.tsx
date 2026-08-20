@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Syne } from "next/font/google";
-import { cookies } from "next/headers";
-import { ADMIN_COOKIE_NAME } from "@/lib/backend";
+import { getCurrentUser } from "@/lib/backend";
 import { DashboardShell } from "@/features/layout/DashboardShell";
 import "./globals.css";
 
@@ -29,8 +28,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const cookieStore = await cookies();
-  const isAuthenticated = cookieStore.has(ADMIN_COOKIE_NAME);
+  const user = await getCurrentUser();
 
   return (
     <html
@@ -44,9 +42,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <link rel="apple-touch-icon" href="/apple-icon.png" />
       </head>
       <body className="min-h-full bg-surface-muted text-text font-sans" suppressHydrationWarning>
-        <DashboardShell isAuthenticated={isAuthenticated}>
-          {children}
-        </DashboardShell>
+        <DashboardShell user={user}>{children}</DashboardShell>
       </body>
     </html>
   );

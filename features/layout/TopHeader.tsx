@@ -2,37 +2,49 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Menu, Plus } from "lucide-react";
+import { hasPermission } from "@/lib/permissions";
+import type { UserRecord } from "@/lib/types";
 
 interface TopHeaderProps {
   onOpenSidebar: () => void;
+  user: UserRecord;
 }
 
-export function TopHeader({ onOpenSidebar }: TopHeaderProps) {
+const BREADCRUMB_LABELS: Record<string, string> = {
+  "/components/new": "New Component",
+  "/users": "Users",
+  "/users/new": "New User",
+  "/roles": "Roles",
+  "/roles/new": "New Role",
+  "/settings": "Settings",
+};
+
+export function TopHeader({ onOpenSidebar, user }: TopHeaderProps) {
   const pathname = usePathname();
+  const canManageComponents = hasPermission(user, "components.manage");
 
   function getBreadcrumbs() {
-    if (pathname === "/components/new") {
+    const label = pathname.includes("/edit")
+      ? pathname.startsWith("/users")
+        ? "Edit User"
+        : pathname.startsWith("/roles")
+          ? "Edit Role"
+          : "Edit Component"
+      : BREADCRUMB_LABELS[pathname];
+
+    if (label) {
       return (
         <div className="flex items-center gap-1.5 text-xs text-text-muted">
           <Link href="/" className="hover:text-text transition-colors">
             Dashboard
           </Link>
           <span>/</span>
-          <span className="font-medium text-text">New Component</span>
+          <span className="font-medium text-text">{label}</span>
         </div>
       );
     }
-    if (pathname.includes("/edit")) {
-      return (
-        <div className="flex items-center gap-1.5 text-xs text-text-muted">
-          <Link href="/" className="hover:text-text transition-colors">
-            Dashboard
-          </Link>
-          <span>/</span>
-          <span className="font-medium text-text">Edit Component</span>
-        </div>
-      );
-    }
+
     return (
       <div className="flex items-center gap-1.5 text-xs text-text-muted">
         <span className="font-medium text-text">Dashboard</span>
@@ -52,9 +64,7 @@ export function TopHeader({ onOpenSidebar }: TopHeaderProps) {
           aria-label="Open sidebar menu"
           className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface-muted text-text-muted transition-colors hover:text-text lg:hidden cursor-pointer active:scale-95"
         >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
+          <Menu className="h-5 w-5" />
         </button>
 
         {/* Breadcrumb Navigation */}
@@ -65,24 +75,12 @@ export function TopHeader({ onOpenSidebar }: TopHeaderProps) {
 
       {/* Right Header Actions */}
       <div className="flex items-center gap-2.5">
-        <a
-          href="https://undiegravity.site"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:bg-surface-muted hover:text-text cursor-pointer shadow-2xs"
-        >
-          <span>Live Site</span>
-          <span className="text-[0.6875rem]">↗</span>
-        </a>
-
-        {pathname !== "/components/new" ? (
+        {pathname !== "/components/new" && canManageComponents ? (
           <Link
             href="/components/new"
             className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground transition-all hover:bg-accent-hover active:scale-95 cursor-pointer shadow-2xs"
           >
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
+            <Plus className="h-3.5 w-3.5" />
             <span>New Component</span>
           </Link>
         ) : null}

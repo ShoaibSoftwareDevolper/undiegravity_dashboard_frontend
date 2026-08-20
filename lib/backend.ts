@@ -1,20 +1,28 @@
 import { cookies } from "next/headers";
 import type {
+  ChangePasswordInput,
   ComponentInput,
   ComponentRecord,
   ComponentUpdateInput,
+  MeUpdateInput,
+  RoleInput,
+  RoleRecord,
+  RoleUpdateInput,
   UploadSignature,
+  UserInput,
+  UserRecord,
+  UserUpdateInput,
 } from "./types";
 
 /**
  * Importing `cookies` from `next/headers` already makes this module fail
  * to build if it is ever imported from a Client Component, since that API
  * only works in Server Components, Server Functions, and Route Handlers.
- * That is the boundary that keeps the admin key server side; nothing here
- * needs to duplicate it.
+ * That is the boundary that keeps the session token server side; nothing
+ * here needs to duplicate it.
  */
 
-export const ADMIN_COOKIE_NAME = process.env.ADMIN_COOKIE_NAME || "undiegravity_admin_key";
+export const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME || "undiegravity_session";
 
 const BACKEND_API_URL = (process.env.BACKEND_API_URL ?? "").replace(/\/+$/, "");
 
@@ -28,32 +36,33 @@ export class BackendError extends Error {
   }
 }
 
-export async function getAdminKeyFromCookie(): Promise<string | null> {
+export async function getSessionToken(): Promise<string | null> {
   const cookieStore = await cookies();
-  return cookieStore.get(ADMIN_COOKIE_NAME)?.value ?? null;
+  return cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
 }
 
 interface BackendFetchOptions extends RequestInit {
   path: string;
-  /** Overrides the cookie lookup. Used only by the login route, before any cookie exists. */
-  adminKey?: string;
+  /** Overrides the cookie lookup. Used only right after login/password
+   * change, before the new cookie has been written yet. */
+  token?: string;
 }
 
-async function backendFetch<T>({ path, adminKey, headers, ...init }: BackendFetchOptions): Promise<T> {
+async function backendFetch<T>({ path, token, headers, ...init }: BackendFetchOptions): Promise<T> {
   if (!BACKEND_API_URL) {
     throw new BackendError("BACKEND_API_URL is not configured", 500);
   }
 
-  const key = adminKey ?? (await getAdminKeyFromCookie());
-  if (!key) {
-    throw new BackendError("Missing admin session", 401);
+  const sessionToken = token ?? (await getSessionToken());
+  if (!sessionToken) {
+    throw new BackendError("Missing session", 401);
   }
 
   const response = await fetch(`${BACKEND_API_URL}${path}`, {
     ...init,
     headers: {
       ...headers,
-      "X-Admin-Key": key,
+      Authorization: `Bearer ${sessionToken}`,
       ...(init.body ? { "Content-Type": "application/json" } : {}),
     },
     cache: "no-store",
@@ -84,6 +93,164 @@ async function extractErrorMessage(response: Response): Promise<string> {
   return `Backend request failed with status ${response.status}`;
 }
 
+// --- auth --------------------------------------------------------------
+
+interface LoginResult {
+  token: string;
+  user: UserRecord;
+}
+
+/**
+ * Unlike every other call in this file, login has no session token yet,
+ * so it talks to the backend directly rather than through backendFetch.
+ */
+export async function loginWithCredentials(username: string, password: string): Promise<LoginResult> {
+  if (!BACKEND_API_URL) {
+    throw new BackendError("BACKEND_API_URL is not configured", 500);
+  }
+
+  const response = await fetch(`${BACKEND_API_URL}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new BackendError(await extractErrorMessage(response), response.status);
+  }
+
+  return response.json() as Promise<LoginResult>;
+}
+
+export async function logoutSession(token?: string): Promise<void> {
+  const sessionToken = token ?? (await getSessionToken());
+  if (!sessionToken || !BACKEND_API_URL) {
+    return;
+  }
+  // Best effort: even if this fails, the dashboard still clears its own
+  // cookie, since staying "logged out" locally matters more to the user
+  // than the backend session technically outliving the cookie until its
+  // 7 day TTL expires.
+  await fetch(`${BACKEND_API_URL}/auth/logout`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${sessionToken}` },
+    cache: "no-store",
+  }).catch(() => undefined);
+}
+
+export async function getCurrentUser(token?: string): Promise<UserRecord | null> {
+  const sessionToken = token ?? (await getSessionToken());
+  if (!sessionToken) {
+    return null;
+  }
+  try {
+    return await backendFetch<UserRecord>({ path: "/auth/me", token: sessionToken });
+  } catch (error) {
+    if (error instanceof BackendError && error.status === 401) {
+      return null;
+    }
+    throw error;
+  }
+}
+
+export async function updateMe(data: MeUpdateInput, token?: string): Promise<UserRecord> {
+  return backendFetch<UserRecord>({
+    path: "/auth/me",
+    method: "PATCH",
+    body: JSON.stringify(data),
+    token,
+  });
+}
+
+/** Returns the new session token: the backend rotates every session,
+ * including the current one, on a successful password change. */
+export async function changePassword(data: ChangePasswordInput, token?: string): Promise<string> {
+  const result = await backendFetch<{ token: string }>({
+    path: "/auth/change-password",
+    method: "POST",
+    body: JSON.stringify(data),
+    token,
+  });
+  return result.token;
+}
+
+// --- users ---------------------------------------------------------------
+
+export async function listUsers(token?: string): Promise<UserRecord[]> {
+  return backendFetch<UserRecord[]>({ path: "/admin/users", token });
+}
+
+export async function getUserById(id: string, token?: string): Promise<UserRecord | null> {
+  const users = await listUsers(token);
+  return users.find((user) => user.id === id) ?? null;
+}
+
+export async function createUserRecord(data: UserInput, token?: string): Promise<UserRecord> {
+  return backendFetch<UserRecord>({
+    path: "/admin/users",
+    method: "POST",
+    body: JSON.stringify(data),
+    token,
+  });
+}
+
+export async function updateUserRecord(
+  id: string,
+  data: UserUpdateInput,
+  token?: string
+): Promise<UserRecord> {
+  return backendFetch<UserRecord>({
+    path: `/admin/users/${id}`,
+    method: "PATCH",
+    body: JSON.stringify(data),
+    token,
+  });
+}
+
+export async function deleteUserRecord(id: string, token?: string): Promise<void> {
+  await backendFetch<void>({ path: `/admin/users/${id}`, method: "DELETE", token });
+}
+
+// --- roles -----------------------------------------------------------------
+
+export async function listRoles(token?: string): Promise<RoleRecord[]> {
+  return backendFetch<RoleRecord[]>({ path: "/admin/roles", token });
+}
+
+export async function getRoleById(id: string, token?: string): Promise<RoleRecord | null> {
+  const roles = await listRoles(token);
+  return roles.find((role) => role.id === id) ?? null;
+}
+
+export async function createRoleRecord(data: RoleInput, token?: string): Promise<RoleRecord> {
+  return backendFetch<RoleRecord>({
+    path: "/admin/roles",
+    method: "POST",
+    body: JSON.stringify(data),
+    token,
+  });
+}
+
+export async function updateRoleRecord(
+  id: string,
+  data: RoleUpdateInput,
+  token?: string
+): Promise<RoleRecord> {
+  return backendFetch<RoleRecord>({
+    path: `/admin/roles/${id}`,
+    method: "PATCH",
+    body: JSON.stringify(data),
+    token,
+  });
+}
+
+export async function deleteRoleRecord(id: string, token?: string): Promise<void> {
+  await backendFetch<void>({ path: `/admin/roles/${id}`, method: "DELETE", token });
+}
+
+// --- components --------------------------------------------------------
+
 interface PaginatedComponents {
   items: ComponentRecord[];
   total: number;
@@ -91,10 +258,10 @@ interface PaginatedComponents {
   offset: number;
 }
 
-export async function listComponents(adminKey?: string): Promise<ComponentRecord[]> {
+export async function listComponents(token?: string): Promise<ComponentRecord[]> {
   const data = await backendFetch<PaginatedComponents>({
     path: "/admin/components?limit=200",
-    adminKey,
+    token,
   });
   return data.items;
 }
@@ -104,53 +271,53 @@ export async function listComponents(adminKey?: string): Promise<ComponentRecord
  * route and the mutation routes. Loading a single component for the edit
  * page goes through the list and finds the matching id.
  */
-export async function getComponentById(id: string, adminKey?: string): Promise<ComponentRecord | null> {
-  const components = await listComponents(adminKey);
+export async function getComponentById(id: string, token?: string): Promise<ComponentRecord | null> {
+  const components = await listComponents(token);
   return components.find((component) => component.id === id) ?? null;
 }
 
 export async function createComponentRecord(
   data: ComponentInput,
-  adminKey?: string
+  token?: string
 ): Promise<ComponentRecord> {
   return backendFetch<ComponentRecord>({
     path: "/admin/components",
     method: "POST",
     body: JSON.stringify(data),
-    adminKey,
+    token,
   });
 }
 
 export async function updateComponentRecord(
   id: string,
   data: ComponentUpdateInput,
-  adminKey?: string
+  token?: string
 ): Promise<ComponentRecord> {
   return backendFetch<ComponentRecord>({
     path: `/admin/components/${id}`,
     method: "PATCH",
     body: JSON.stringify(data),
-    adminKey,
+    token,
   });
 }
 
-export async function deleteComponentRecord(id: string, adminKey?: string): Promise<void> {
+export async function deleteComponentRecord(id: string, token?: string): Promise<void> {
   await backendFetch<void>({
     path: `/admin/components/${id}`,
     method: "DELETE",
-    adminKey,
+    token,
   });
 }
 
 export async function requestUploadSignature(
   params: { folder?: string; public_id?: string },
-  adminKey?: string
+  token?: string
 ): Promise<UploadSignature> {
   return backendFetch<UploadSignature>({
     path: "/admin/uploads/signature",
     method: "POST",
     body: JSON.stringify(params),
-    adminKey,
+    token,
   });
 }
 

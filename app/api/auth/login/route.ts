@@ -1,8 +1,9 @@
-import { cookies } from "next/headers";
-import { ADMIN_COOKIE_NAME, BackendError, listComponents } from "@/lib/backend";
+import { BackendError, loginWithCredentials } from "@/lib/backend";
+import { setSessionCookie } from "@/lib/session-cookie";
 
 interface LoginRequestBody {
-  adminKey?: unknown;
+  username?: unknown;
+  password?: unknown;
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -14,29 +15,22 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const adminKey = body.adminKey;
-  if (typeof adminKey !== "string" || adminKey.trim().length === 0) {
-    return Response.json({ error: "Admin key is required" }, { status: 400 });
+  const username = body.username;
+  const password = body.password;
+  if (typeof username !== "string" || !username.trim() || typeof password !== "string" || !password) {
+    return Response.json({ error: "Username and password are required" }, { status: 400 });
   }
 
   try {
-    // Validate the key against the backend before setting any cookie.
-    await listComponents(adminKey);
+    const { token, user } = await loginWithCredentials(username.trim(), password);
+    await setSessionCookie(token);
+    return Response.json({ user });
   } catch (error) {
-    if (error instanceof BackendError && error.status === 401) {
-      return Response.json({ error: "Invalid admin key" }, { status: 401 });
+    if (error instanceof BackendError) {
+      const status = error.status === 401 ? 401 : 502;
+      const message = error.status === 401 ? "Invalid username or password" : "Unable to reach the backend";
+      return Response.json({ error: message }, { status });
     }
-    return Response.json({ error: "Unable to reach the backend" }, { status: 502 });
+    return Response.json({ error: "Unexpected server error" }, { status: 500 });
   }
-
-  const cookieStore = await cookies();
-  cookieStore.set(ADMIN_COOKIE_NAME, adminKey, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7,
-  });
-
-  return Response.json({ ok: true });
 }

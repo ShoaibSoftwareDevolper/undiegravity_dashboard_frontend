@@ -1,8 +1,8 @@
-import { cookies } from "next/headers";
-import { ADMIN_COOKIE_NAME } from "@/lib/backend";
+import { logoutSession } from "@/lib/backend";
+import { clearSessionCookie } from "@/lib/session-cookie";
 
 export async function POST(): Promise<Response> {
-  const cookieStore = await cookies();
-  cookieStore.delete(ADMIN_COOKIE_NAME);
+  await logoutSession();
+  await clearSessionCookie();
   return Response.json({ ok: true });
 }

@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const ADMIN_COOKIE_NAME = process.env.ADMIN_COOKIE_NAME || "undiegravity_admin_key";
+const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME || "undiegravity_session";
 
 const PUBLIC_PATHS = new Set([
   "/login",
@@ -23,9 +23,9 @@ export function proxy(request: NextRequest): NextResponse {
     return NextResponse.next();
   }
 
-  const hasAdminCookie = request.cookies.has(ADMIN_COOKIE_NAME);
+  const hasSessionCookie = request.cookies.has(SESSION_COOKIE_NAME);
 
-  if (hasAdminCookie) {
+  if (hasSessionCookie) {
     return NextResponse.next();
   }
 
