@@ -56,7 +56,6 @@ export function ComponentsTable({ components }: ComponentsTableProps) {
 
   const filteredComponents = useMemo(() => {
     return components.filter((item) => {
-      // Search text match
       const q = searchQuery.toLowerCase().trim();
       const matchSearch =
         !q ||
@@ -64,10 +63,8 @@ export function ComponentsTable({ components }: ComponentsTableProps) {
         item.slug.toLowerCase().includes(q) ||
         item.category.toLowerCase().includes(q);
 
-      // Category match
       const matchCategory = selectedCategory === "all" || item.category === selectedCategory;
 
-      // Status match
       let matchStatus = true;
       if (statusFilter === "active") matchStatus = item.enabled === true;
       if (statusFilter === "inactive") matchStatus = item.enabled === false;

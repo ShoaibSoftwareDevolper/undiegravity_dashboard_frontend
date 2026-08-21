@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState, type ChangeEvent } from "react";
-import Image from "next/image";
 import { getUploadSignature } from "@/lib/api";
 import {
   getCloudinaryImageUrl,
@@ -130,8 +129,8 @@ export function ThumbnailUploader({ value, onChange }: ThumbnailUploaderProps) {
       }
 
       onChange(result.public_id);
-    } catch (err: any) {
-      setError(err?.message || "Upload failed. Try again.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed. Try again.");
     } finally {
       setIsUploading(false);
     }

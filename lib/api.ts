@@ -76,10 +76,6 @@ export async function logout(): Promise<void> {
   await requestJson("/api/auth/logout", { method: "POST" });
 }
 
-export async function getMe(): Promise<UserRecord> {
-  return requestJson<UserRecord>("/api/auth/me");
-}
-
 export async function updateMe(input: MeUpdateInput): Promise<UserRecord> {
   return requestJson<UserRecord>("/api/auth/me", {
     method: "PATCH",

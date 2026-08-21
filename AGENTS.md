@@ -53,7 +53,7 @@ read:
   would 401. If you add any other flow that can invalidate sessions
   server-side, remember the cookie has to be updated (or cleared) to match.
 - **Permissions gate both the UI and the API.** `lib/permissions.ts`
-  (`hasPermission`/`hasAnyPermission`) is used in Server Components to
+  (`hasPermission`) is used in Server Components to
   `redirect()` away from pages a user's role can't use (see `app/users/page.tsx`,
   `app/roles/page.tsx`, `app/page.tsx`) and in `features/layout/Sidebar.tsx`
   to hide nav links the user can't use — but this is a UX nicety, not the
