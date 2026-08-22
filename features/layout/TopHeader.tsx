@@ -18,6 +18,7 @@ const BREADCRUMB_LABELS: Record<string, string> = {
   "/roles": "Roles",
   "/roles/new": "New Role",
   "/settings": "Settings",
+  "/activity": "Activity",
 };
 
 export function TopHeader({ onOpenSidebar, user }: TopHeaderProps) {

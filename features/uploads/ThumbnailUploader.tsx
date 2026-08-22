@@ -78,14 +78,7 @@ export function ThumbnailUploader({ value, onChange }: ThumbnailUploaderProps) {
       return;
     }
 
-    const isAccepted = ACCEPTED_TYPES.some((type) => {
-      if (type.endsWith("/*")) {
-        return file.type.startsWith(type.replace("/*", ""));
-      }
-      return file.type === type;
-    });
-
-    if (!isAccepted && !file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+    if (!ACCEPTED_TYPES.includes(file.type)) {
       setError("Please upload an image (PNG, JPEG, WebP, SVG, GIF) or video (MP4, WebM, MOV).");
       return;
     }

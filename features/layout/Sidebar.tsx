@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Plus, Settings, Shield, Users as UsersIcon } from "lucide-react";
+import { Activity, LayoutDashboard, Plus, Settings, Shield, Users as UsersIcon } from "lucide-react";
 import { LogoutButton } from "@/features/auth/LogoutButton";
 import { hasPermission } from "@/lib/permissions";
 import type { Permission, UserRecord } from "@/lib/types";
@@ -27,6 +27,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/components/new", label: "New Component", icon: <Plus className="h-4 w-4" />, permission: "components.manage" },
   { href: "/users", label: "Users", icon: <UsersIcon className="h-4 w-4" />, permission: "users.manage" },
   { href: "/roles", label: "Roles", icon: <Shield className="h-4 w-4" />, permission: "roles.manage" },
+  { href: "/activity", label: "Activity", icon: <Activity className="h-4 w-4" />, permission: "audit.view" },
 ];
 
 function initials(name: string): string {

@@ -153,9 +153,9 @@ fields, not a chip picker) was chosen deliberately to avoid needing one.
 in-house substitute worth hand-rolling, and it is tree-shaken per-icon so it
 does not compromise the "keep it light" intent behind avoiding the rest.
 
-## Users, roles, and self-service settings
+## Users, roles, activity, and self-service settings
 
-Three admin areas exist beyond components, all following the same
+Four admin areas exist beyond components, all following the same
 Server-Component-fetches-then-passes-to-Client-Component-form pattern as
 components:
 
@@ -173,3 +173,11 @@ components:
   of role. `ProfileForm` (`features/settings/`) updates name/username via
   `PATCH /auth/me`; `ChangePasswordForm` calls `POST /auth/change-password`,
   which rotates the session (see "Security model" above).
+- `app/activity/` (`features/activity/ActivityTable.tsx`): read-only log of
+  who created, updated, or deleted a component, user, or role, newest
+  first, via `GET /admin/audit-log`. Gated on `audit.view`. An `update`
+  entry's `changes` is a `{field: {old, new}}` map the backend already
+  redacts for passwords (`"***"` on both sides, never the real value or
+  hash) — this page just renders whatever it's given, it does not do any
+  redaction itself. There is no create/edit UI for this data by design;
+  the log is append-only on the backend and this page never writes to it.

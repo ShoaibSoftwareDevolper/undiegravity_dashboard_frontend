@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import type {
+  AuditLogEntry,
   ChangePasswordInput,
   ComponentInput,
   ComponentRecord,
@@ -258,12 +259,35 @@ interface PaginatedComponents {
   offset: number;
 }
 
+const COMPONENTS_PAGE_SIZE = 200; // the backend's own max page size (PaginationParams, le=200)
+
+/**
+ * Follows the backend's limit/offset/total pagination until every
+ * component has been fetched, instead of reading only the first page.
+ * A single hardcoded `?limit=200` silently dropped everything past the
+ * 200th component with no indication anything was missing; this keeps
+ * that from ever happening again regardless of how large the library
+ * grows, without needing pagination UI for what is still a small
+ * personal library today.
+ */
 export async function listComponents(token?: string): Promise<ComponentRecord[]> {
-  const data = await backendFetch<PaginatedComponents>({
-    path: "/admin/components?limit=200",
-    token,
-  });
-  return data.items;
+  const all: ComponentRecord[] = [];
+  let offset = 0;
+
+  while (true) {
+    const data = await backendFetch<PaginatedComponents>({
+      path: `/admin/components?limit=${COMPONENTS_PAGE_SIZE}&offset=${offset}`,
+      token,
+    });
+    all.push(...data.items);
+
+    offset += data.items.length;
+    if (data.items.length === 0 || offset >= data.total) {
+      break;
+    }
+  }
+
+  return all;
 }
 
 /**
@@ -319,6 +343,23 @@ export async function requestUploadSignature(
     body: JSON.stringify(params),
     token,
   });
+}
+
+// --- audit log -----------------------------------------------------------
+
+interface PaginatedAuditLog {
+  items: AuditLogEntry[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export async function listAuditLog(token?: string): Promise<AuditLogEntry[]> {
+  const data = await backendFetch<PaginatedAuditLog>({
+    path: "/admin/audit-log?limit=100",
+    token,
+  });
+  return data.items;
 }
 
 /** Converts a caught error into a Response, for use in app/api route handlers. */

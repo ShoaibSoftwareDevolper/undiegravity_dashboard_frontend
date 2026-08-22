@@ -1,12 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/backend";
+import { hasPermission } from "@/lib/permissions";
 import { ComponentForm } from "@/features/components/ComponentForm";
 
 export const metadata: Metadata = {
   title: "New Component | UndieGravity Admin",
 };
 
-export default function NewComponentPage() {
+export default async function NewComponentPage() {
+  const currentUser = await getCurrentUser();
+  if (!currentUser || !hasPermission(currentUser, "components.manage")) {
+    redirect("/");
+  }
+
   return (
     <div className="flex flex-col gap-6 max-w-4xl mx-auto">
       {/* Header */}

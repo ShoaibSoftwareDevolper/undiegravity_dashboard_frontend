@@ -63,7 +63,8 @@ export type Permission =
   | "components.manage"
   | "uploads.manage"
   | "users.manage"
-  | "roles.manage";
+  | "roles.manage"
+  | "audit.view";
 
 export const ALL_PERMISSIONS: Permission[] = [
   "components.view",
@@ -71,6 +72,7 @@ export const ALL_PERMISSIONS: Permission[] = [
   "uploads.manage",
   "users.manage",
   "roles.manage",
+  "audit.view",
 ];
 
 export const PERMISSION_INFO: Record<Permission, { label: string; description: string }> = {
@@ -93,6 +95,10 @@ export const PERMISSION_INFO: Record<Permission, { label: string; description: s
   "roles.manage": {
     label: "Manage roles",
     description: "Create, edit, and delete roles and their permissions.",
+  },
+  "audit.view": {
+    label: "View activity log",
+    description: "See a record of who created, changed, or deleted what.",
   },
 };
 
@@ -143,4 +149,23 @@ export interface MeUpdateInput {
 export interface ChangePasswordInput {
   current_password: string;
   new_password: string;
+}
+
+export type AuditAction = "create" | "update" | "delete";
+export type AuditEntityType = "component" | "user" | "role";
+
+export interface AuditFieldChange {
+  old: unknown;
+  new: unknown;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  actor_username: string;
+  action: AuditAction;
+  entity_type: AuditEntityType;
+  entity_id: string;
+  entity_label: string;
+  changes: Record<string, AuditFieldChange> | null;
+  created_at: string;
 }

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { getComponentById } from "@/lib/backend";
+import { notFound, redirect } from "next/navigation";
+import { getComponentById, getCurrentUser } from "@/lib/backend";
+import { hasPermission } from "@/lib/permissions";
 import { ComponentForm } from "@/features/components/ComponentForm";
 
 export const metadata: Metadata = {
@@ -9,6 +10,11 @@ export const metadata: Metadata = {
 };
 
 export default async function EditComponentPage(props: PageProps<"/components/[id]/edit">) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser || !hasPermission(currentUser, "components.manage")) {
+    redirect("/");
+  }
+
   const { id } = await props.params;
   const component = await getComponentById(id);
 
