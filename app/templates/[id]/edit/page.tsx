@@ -1,24 +1,28 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { getComponentById, getCurrentUser } from "@/lib/backend";
+import { getTemplateById, getCurrentUser } from "@/lib/backend";
 import { hasPermission } from "@/lib/permissions";
-import { ComponentForm } from "@/features/components/ComponentForm";
+import { TemplateForm } from "@/features/templates/TemplateForm";
 
 export const metadata: Metadata = {
-  title: "Edit Component | UndieGravity Admin",
+  title: "Edit Website Template | UndieGravity Admin",
 };
 
-export default async function EditComponentPage(props: PageProps<"/components/[id]/edit">) {
+interface EditTemplatePageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function EditTemplatePage({ params }: EditTemplatePageProps) {
   const currentUser = await getCurrentUser();
-  if (!currentUser || !hasPermission(currentUser, "components.manage")) {
+  if (!currentUser || !hasPermission(currentUser, "templates.manage")) {
     redirect("/");
   }
 
-  const { id } = await props.params;
-  const component = await getComponentById(id);
+  const { id } = await params;
+  const template = await getTemplateById(id);
 
-  if (!component) {
+  if (!template) {
     notFound();
   }
 
@@ -31,23 +35,21 @@ export default async function EditComponentPage(props: PageProps<"/components/[i
             Dashboard
           </Link>
           <span>/</span>
-          <span className="font-medium text-text">Edit Component</span>
+          <span className="font-medium text-text">Edit Template</span>
         </div>
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold tracking-tight text-text">Edit: {component.name}</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-text">Edit: {template.name}</h1>
           <span className="font-mono text-xs text-text-muted bg-surface-muted px-2 py-0.5 rounded border border-border">
-            {component.slug}
+            /{template.slug}
           </span>
         </div>
         <p className="text-xs sm:text-sm text-text-muted">
-          Modify metadata, category, sort order, and thumbnail media for this component.
+          Modify template details, screenshots, GitHub repository URL, and visibility status.
         </p>
       </div>
 
       {/* Form Container */}
-      <div className="rounded-xl border border-border bg-surface p-6 sm:p-8 shadow-2xs">
-        <ComponentForm mode="edit" initialData={component} />
-      </div>
+      <TemplateForm mode="edit" initialData={template} />
     </div>
   );
 }

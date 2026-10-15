@@ -3,15 +3,15 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/backend";
 import { hasPermission } from "@/lib/permissions";
-import { ComponentForm } from "@/features/components/ComponentForm";
+import { TemplateForm } from "@/features/templates/TemplateForm";
 
 export const metadata: Metadata = {
-  title: "New Component | UndieGravity Admin",
+  title: "New Website Template | UndieGravity Admin",
 };
 
-export default async function NewComponentPage() {
+export default async function NewTemplatePage() {
   const currentUser = await getCurrentUser();
-  if (!currentUser || !hasPermission(currentUser, "components.manage")) {
+  if (!currentUser || !hasPermission(currentUser, "templates.manage")) {
     redirect("/");
   }
 
@@ -24,18 +24,16 @@ export default async function NewComponentPage() {
             Dashboard
           </Link>
           <span>/</span>
-          <span className="font-medium text-text">New Component</span>
+          <span className="font-medium text-text">New Template</span>
         </div>
-        <h1 className="text-2xl font-bold tracking-tight text-text">Add New Component</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-text">Add Website Template</h1>
         <p className="text-xs sm:text-sm text-text-muted">
-          Fill out metadata and upload a video/thumbnail to publish a new component to the gallery.
+          Fill out template details, preview image, gallery screenshots, and GitHub source repository URL.
         </p>
       </div>
 
       {/* Form Container */}
-      <div className="rounded-xl border border-border bg-surface p-6 sm:p-8 shadow-2xs">
-        <ComponentForm mode="create" />
-      </div>
+      <TemplateForm mode="create" />
     </div>
   );
 }

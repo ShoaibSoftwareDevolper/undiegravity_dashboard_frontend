@@ -9,6 +9,9 @@ const ACTION_STYLES: Record<AuditAction, { label: string; className: string; ico
   create: { label: "Created", className: "bg-success/15 text-success", icon: Plus },
   update: { label: "Updated", className: "bg-accent/15 text-accent", icon: Pencil },
   delete: { label: "Deleted", className: "bg-danger-muted text-danger", icon: Trash2 },
+  toggle_enabled: { label: "Toggled Visibility", className: "bg-accent/15 text-accent", icon: Activity },
+  toggle_featured: { label: "Toggled Featured", className: "bg-accent/15 text-accent", icon: Activity },
+  reorder: { label: "Reordered", className: "bg-accent/15 text-accent", icon: Activity },
 };
 
 function formatValue(value: unknown): string {

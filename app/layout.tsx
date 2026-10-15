@@ -37,7 +37,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       style={{ colorScheme: "light" }}
       suppressHydrationWarning
     >
-      <head>
+      <head suppressHydrationWarning>
         <link rel="icon" href="/icon.png" sizes="any" />
         <link rel="apple-touch-icon" href="/apple-icon.png" />
       </head>

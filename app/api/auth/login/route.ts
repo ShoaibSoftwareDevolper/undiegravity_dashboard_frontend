@@ -27,8 +27,11 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ user });
   } catch (error) {
     if (error instanceof BackendError) {
-      const status = error.status === 401 ? 401 : 502;
-      const message = error.status === 401 ? "Invalid username or password" : "Unable to reach the backend";
+      const status = error.status;
+      const message =
+        error.status === 401
+          ? "Invalid username or password."
+          : error.message || "Unable to reach the backend";
       return Response.json({ error: message }, { status });
     }
     return Response.json({ error: "Unexpected server error" }, { status: 500 });

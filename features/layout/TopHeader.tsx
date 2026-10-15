@@ -12,7 +12,8 @@ interface TopHeaderProps {
 }
 
 const BREADCRUMB_LABELS: Record<string, string> = {
-  "/components/new": "New Component",
+  "/templates": "Templates",
+  "/templates/new": "New Template",
   "/users": "Users",
   "/users/new": "New User",
   "/roles": "Roles",
@@ -23,7 +24,7 @@ const BREADCRUMB_LABELS: Record<string, string> = {
 
 export function TopHeader({ onOpenSidebar, user }: TopHeaderProps) {
   const pathname = usePathname();
-  const canManageComponents = hasPermission(user, "components.manage");
+  const canManageTemplates = hasPermission(user, "templates.manage");
 
   function getBreadcrumbs() {
     const label = pathname.includes("/edit")
@@ -31,7 +32,7 @@ export function TopHeader({ onOpenSidebar, user }: TopHeaderProps) {
         ? "Edit User"
         : pathname.startsWith("/roles")
           ? "Edit Role"
-          : "Edit Component"
+          : "Edit Template"
       : BREADCRUMB_LABELS[pathname];
 
     if (label) {
@@ -50,7 +51,7 @@ export function TopHeader({ onOpenSidebar, user }: TopHeaderProps) {
       <div className="flex items-center gap-1.5 text-xs text-text-muted">
         <span className="font-medium text-text">Dashboard</span>
         <span>/</span>
-        <span>Components</span>
+        <span>Templates</span>
       </div>
     );
   }
@@ -76,13 +77,13 @@ export function TopHeader({ onOpenSidebar, user }: TopHeaderProps) {
 
       {/* Right Header Actions */}
       <div className="flex items-center gap-2.5">
-        {pathname !== "/components/new" && canManageComponents ? (
+        {pathname !== "/templates/new" && canManageTemplates ? (
           <Link
-            href="/components/new"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground transition-all hover:bg-accent-hover active:scale-95 cursor-pointer shadow-2xs"
+            href="/templates/new"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3.5 py-1.5 text-xs font-semibold text-white transition-all hover:bg-accent-hover active:scale-95 cursor-pointer shadow-xs"
           >
             <Plus className="h-3.5 w-3.5" />
-            <span>New Component</span>
+            <span>New Template</span>
           </Link>
         ) : null}
       </div>

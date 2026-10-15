@@ -1,46 +1,46 @@
-export type Framework = "react" | "nextjs";
-export type PreviewMode = "image" | "live";
-
-/**
- * Mirrors the backend's admin ComponentOut schema exactly, including its
- * snake_case field names. The public site has its own camelCase shape for
- * its read only routes; this dashboard talks to the admin routes only, so
- * it mirrors those field names instead.
- */
-export interface ComponentRecord {
+export interface TemplateRecord {
   id: string;
-  slug: string;
   name: string;
-  description: string;
-  category: string;
+  slug: string;
+  image: string;
+  gallery_images: string[];
+  github_url: string;
+  video: string | null;
+  description: string | null;
+  category: string | null;
   tags: string[];
-  framework: Framework;
-  thumbnail_public_id: string | null;
-  preview_mode: PreviewMode;
-  enabled: boolean;
   sort_order: number;
-  dependencies: string[] | null;
-  usage_notes: string | null;
+  featured_on_home: boolean;
+  enabled: boolean;
   created_at: string;
   updated_at: string;
 }
 
-export interface ComponentInput {
-  slug: string;
+export interface TemplateInput {
   name: string;
-  description: string;
-  category: string;
+  slug?: string;
+  image: string;
+  gallery_images: string[];
+  github_url: string;
+  video?: string | null;
+  description?: string | null;
+  category?: string | null;
   tags: string[];
-  framework: Framework;
-  thumbnail_public_id: string | null;
-  preview_mode: PreviewMode;
-  enabled: boolean;
   sort_order: number;
-  dependencies: string[];
-  usage_notes: string | null;
+  featured_on_home: boolean;
+  enabled: boolean;
 }
 
-export type ComponentUpdateInput = Partial<ComponentInput>;
+export type TemplateUpdateInput = Partial<TemplateInput>;
+
+export interface TemplateReorderItem {
+  id: string;
+  sort_order: number;
+}
+
+export interface TemplateReorderRequest {
+  items: TemplateReorderItem[];
+}
 
 export interface UploadSignature {
   signature: string;
@@ -51,14 +51,9 @@ export interface UploadSignature {
   public_id: string | null;
 }
 
-/**
- * Mirrors the backend's fixed permission catalog
- * (app/modules/users/models.py PERMISSIONS). A permission both gates a
- * backend route and decides which dashboard pages/nav items to show, so
- * this list and PERMISSION_INFO below are the single place a new
- * permission needs to be added on the frontend.
- */
 export type Permission =
+  | "templates.view"
+  | "templates.manage"
   | "components.view"
   | "components.manage"
   | "uploads.manage"
@@ -67,8 +62,8 @@ export type Permission =
   | "audit.view";
 
 export const ALL_PERMISSIONS: Permission[] = [
-  "components.view",
-  "components.manage",
+  "templates.view",
+  "templates.manage",
   "uploads.manage",
   "users.manage",
   "roles.manage",
@@ -76,21 +71,29 @@ export const ALL_PERMISSIONS: Permission[] = [
 ];
 
 export const PERMISSION_INFO: Record<Permission, { label: string; description: string }> = {
+  "templates.view": {
+    label: "View templates",
+    description: "See the website templates catalog and metadata.",
+  },
+  "templates.manage": {
+    label: "Manage templates",
+    description: "Create, edit, toggle visibility, reorder, and delete website templates.",
+  },
   "components.view": {
-    label: "View components",
-    description: "See the components list and their metadata.",
+    label: "View templates (legacy)",
+    description: "Legacy permission alias for viewing templates.",
   },
   "components.manage": {
-    label: "Manage components",
-    description: "Create, edit, enable/disable, and delete components.",
+    label: "Manage templates (legacy)",
+    description: "Legacy permission alias for managing templates.",
   },
   "uploads.manage": {
     label: "Upload media",
-    description: "Upload thumbnail images and videos to Cloudinary.",
+    description: "Upload template screenshots, covers, and demo videos.",
   },
   "users.manage": {
     label: "Manage users",
-    description: "Create, edit, and delete user accounts.",
+    description: "Create, edit, and delete admin user accounts.",
   },
   "roles.manage": {
     label: "Manage roles",
@@ -151,8 +154,8 @@ export interface ChangePasswordInput {
   new_password: string;
 }
 
-export type AuditAction = "create" | "update" | "delete";
-export type AuditEntityType = "component" | "user" | "role";
+export type AuditAction = "create" | "update" | "delete" | "toggle_enabled" | "toggle_featured" | "reorder";
+export type AuditEntityType = "template" | "component" | "user" | "role";
 
 export interface AuditFieldChange {
   old: unknown;

@@ -29,8 +29,12 @@ export function LoginForm() {
       await login(username.trim(), password);
       router.push("/");
       router.refresh();
-    } catch {
-      setError("Invalid username or password.");
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message) {
+        setError(err.message);
+      } else {
+        setError("Invalid username or password.");
+      }
       setIsSubmitting(false);
     }
   }
