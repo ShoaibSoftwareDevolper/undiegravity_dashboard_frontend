@@ -18,7 +18,8 @@ export function proxy(request: NextRequest): NextResponse {
   if (
     PUBLIC_PATHS.has(pathname) ||
     pathname.startsWith("/_next") ||
-    pathname.match(/\.(png|jpg|jpeg|svg|webp|ico|css|js)$/)
+    pathname.startsWith("/uploads/") ||
+    pathname.match(/\.(png|jpg|jpeg|svg|webp|gif|mp4|webm|ico|css|js)$/)
   ) {
     return NextResponse.next();
   }
@@ -39,6 +40,6 @@ export function proxy(request: NextRequest): NextResponse {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|icon.png|apple-icon.png|logo.png|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico)).*)",
+    "/((?!_next/static|_next/image|favicon.ico|icon.png|apple-icon.png|logo.png|uploads/|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|mp4|webm)).*)",
   ],
 };

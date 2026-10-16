@@ -2,13 +2,14 @@ import { cookies } from "next/headers";
 import type {
   AuditLogEntry,
   ChangePasswordInput,
-  ComponentInput,
-  ComponentRecord,
-  ComponentUpdateInput,
   MeUpdateInput,
   RoleInput,
   RoleRecord,
   RoleUpdateInput,
+  TemplateInput,
+  TemplateRecord,
+  TemplateReorderItem,
+  TemplateUpdateInput,
   UploadSignature,
   UserInput,
   UserRecord,
@@ -250,33 +251,24 @@ export async function deleteRoleRecord(id: string, token?: string): Promise<void
   await backendFetch<void>({ path: `/admin/roles/${id}`, method: "DELETE", token });
 }
 
-// --- components --------------------------------------------------------
+// --- templates ---------------------------------------------------------
 
-interface PaginatedComponents {
-  items: ComponentRecord[];
+interface PaginatedTemplates {
+  items: TemplateRecord[];
   total: number;
   limit: number;
   offset: number;
 }
 
-const COMPONENTS_PAGE_SIZE = 200; // the backend's own max page size (PaginationParams, le=200)
+const TEMPLATES_PAGE_SIZE = 100;
 
-/**
- * Follows the backend's limit/offset/total pagination until every
- * component has been fetched, instead of reading only the first page.
- * A single hardcoded `?limit=200` silently dropped everything past the
- * 200th component with no indication anything was missing; this keeps
- * that from ever happening again regardless of how large the library
- * grows, without needing pagination UI for what is still a small
- * personal library today.
- */
-export async function listComponents(token?: string): Promise<ComponentRecord[]> {
-  const all: ComponentRecord[] = [];
+export async function listTemplates(token?: string): Promise<TemplateRecord[]> {
+  const all: TemplateRecord[] = [];
   let offset = 0;
 
   while (true) {
-    const data = await backendFetch<PaginatedComponents>({
-      path: `/admin/components?limit=${COMPONENTS_PAGE_SIZE}&offset=${offset}`,
+    const data = await backendFetch<PaginatedTemplates>({
+      path: `/admin/templates?limit=${TEMPLATES_PAGE_SIZE}&offset=${offset}`,
       token,
     });
     all.push(...data.items);
@@ -290,44 +282,82 @@ export async function listComponents(token?: string): Promise<ComponentRecord[]>
   return all;
 }
 
-/**
- * The backend does not expose GET /admin/components/{id}, only the list
- * route and the mutation routes. Loading a single component for the edit
- * page goes through the list and finds the matching id.
- */
-export async function getComponentById(id: string, token?: string): Promise<ComponentRecord | null> {
-  const components = await listComponents(token);
-  return components.find((component) => component.id === id) ?? null;
+export async function getTemplateById(id: string, token?: string): Promise<TemplateRecord | null> {
+  try {
+    return await backendFetch<TemplateRecord>({
+      path: `/admin/templates/${id}`,
+      token,
+    });
+  } catch (error) {
+    if (error instanceof BackendError && error.status === 404) {
+      return null;
+    }
+    throw error;
+  }
 }
 
-export async function createComponentRecord(
-  data: ComponentInput,
+export async function createTemplateRecord(
+  data: TemplateInput,
   token?: string
-): Promise<ComponentRecord> {
-  return backendFetch<ComponentRecord>({
-    path: "/admin/components",
+): Promise<TemplateRecord> {
+  return backendFetch<TemplateRecord>({
+    path: "/admin/templates",
     method: "POST",
     body: JSON.stringify(data),
     token,
   });
 }
 
-export async function updateComponentRecord(
+export async function updateTemplateRecord(
   id: string,
-  data: ComponentUpdateInput,
+  data: TemplateUpdateInput,
   token?: string
-): Promise<ComponentRecord> {
-  return backendFetch<ComponentRecord>({
-    path: `/admin/components/${id}`,
+): Promise<TemplateRecord> {
+  return backendFetch<TemplateRecord>({
+    path: `/admin/templates/${id}`,
     method: "PATCH",
     body: JSON.stringify(data),
     token,
   });
 }
 
-export async function deleteComponentRecord(id: string, token?: string): Promise<void> {
+export async function toggleTemplateEnabled(
+  id: string,
+  token?: string
+): Promise<TemplateRecord> {
+  return backendFetch<TemplateRecord>({
+    path: `/admin/templates/${id}/toggle-enabled`,
+    method: "PATCH",
+    token,
+  });
+}
+
+export async function toggleTemplateFeatured(
+  id: string,
+  token?: string
+): Promise<TemplateRecord> {
+  return backendFetch<TemplateRecord>({
+    path: `/admin/templates/${id}/toggle-featured`,
+    method: "PATCH",
+    token,
+  });
+}
+
+export async function reorderTemplates(
+  items: TemplateReorderItem[],
+  token?: string
+): Promise<void> {
   await backendFetch<void>({
-    path: `/admin/components/${id}`,
+    path: "/admin/templates/reorder",
+    method: "PUT",
+    body: JSON.stringify({ items }),
+    token,
+  });
+}
+
+export async function deleteTemplateRecord(id: string, token?: string): Promise<void> {
+  await backendFetch<void>({
+    path: `/admin/templates/${id}`,
     method: "DELETE",
     token,
   });

@@ -23,8 +23,8 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/", label: "Overview", icon: <LayoutDashboard className="h-4 w-4" />, permission: "components.view" },
-  { href: "/components/new", label: "New Component", icon: <Plus className="h-4 w-4" />, permission: "components.manage" },
+  { href: "/", label: "Overview", icon: <LayoutDashboard className="h-4 w-4" />, permission: "templates.view" },
+  { href: "/templates/new", label: "New Template", icon: <Plus className="h-4 w-4" />, permission: "templates.manage" },
   { href: "/users", label: "Users", icon: <UsersIcon className="h-4 w-4" />, permission: "users.manage" },
   { href: "/roles", label: "Roles", icon: <Shield className="h-4 w-4" />, permission: "roles.manage" },
   { href: "/activity", label: "Activity", icon: <Activity className="h-4 w-4" />, permission: "audit.view" },
